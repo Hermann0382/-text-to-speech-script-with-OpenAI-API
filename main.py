@@ -1,16 +1,47 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 import requests
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 from datetime import datetime
 
-load_dotenv()
+def check_api_key():
+    # Check if .env exists and has API key
+    if not os.path.exists('.env') or not os.getenv('OPENAI_API_KEY'):
+        # Create API key setup window
+        api_window = tk.Toplevel()
+        api_window.title("OpenAI API Key Setup")
+        api_window.geometry("400x200")
+        
+        ttk.Label(api_window, text="Please enter your OpenAI API key:").pack(pady=20)
+        api_key_var = tk.StringVar()
+        ttk.Entry(api_window, textvariable=api_key_var, width=50).pack(pady=10)
+        
+        def save_api_key():
+            api_key = api_key_var.get().strip()
+            if api_key:
+                # Create or update .env file
+                with open('.env', 'w') as f:
+                    f.write(f'OPENAI_API_KEY={api_key}')
+                load_dotenv()
+                api_window.destroy()
+                messagebox.showinfo("Success", "API key saved successfully!")
+            else:
+                messagebox.showerror("Error", "Please enter a valid API key")
+        
+        ttk.Button(api_window, text="Save API Key", command=save_api_key).pack(pady=20)
+        ttk.Label(api_window, text="Get your API key from: openai.com/api-keys", foreground="blue").pack()
+        
+        # Wait for API key setup before continuing
+        api_window.wait_window()
 
 class TextToSpeechApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Text to Speech Converter")
+        
+        # Check for API key before setting up main interface
+        check_api_key()
         
         # Available voices
         self.voices = {
